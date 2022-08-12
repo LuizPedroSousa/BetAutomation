@@ -1,0 +1,6 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "include": ["src/**/*.ts", "src/**/*.spec.ts", "src/**/*.json", ".env", "__mocks__"]
+  }
+}

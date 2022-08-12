@@ -1,0 +1,52 @@
+{
+  "name": "smashup-automation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ts-node-dev -r tsconfig-paths/register --exit-child --poll --inspect --transpile-only --no-deps --respawn --ignore-watch node_modules src/infra/main.ts",
+    "test": "jest",
+    "test:ci": "NODE_ENV=test jest --ci --reporters=default --reporters=jest-junit --detectOpenHandles --forceExit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "babel-plugin-module-resolver": "^4.1.0",
+    "dotenv": "^16.0.0",
+    "puppeteer": "^15.5.0",
+    "puppeteer-extra": "^3.3.4",
+    "puppeteer-extra-plugin-stealth": "^2.11.0",
+    "reflect-metadata": "^0.1.13",
+    "shallow-equal-object": "^1.1.1",
+    "tsconfig-paths": "^3.14.1",
+    "tsyringe": "^4.6.0",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.12",
+    "@types/dotenv": "^8.2.0",
+    "@types/express": "^4.17.13",
+    "@types/jest": "^27.4.1",
+    "@types/node": "^17.0.24",
+    "@types/puppeteer": "^5.4.6",
+    "@types/supertest": "^2.0.12",
+    "@types/uuid": "^8.3.4",
+    "@typescript-eslint/eslint-plugin": "^5.19.0",
+    "@typescript-eslint/parser": "^5.19.0",
+    "babel-plugin-transform-typescript-metadata": "^0.3.2",
+    "babel-polyfill": "^6.26.0",
+    "eslint": "^7.32.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.2.0",
+    "eslint-prettier-config": "^1.0.1",
+    "jest": "^27.5.1",
+    "jest-junit": "^13.1.0",
+    "prettier": "^2.6.2",
+    "ts-jest": "^27.1.4",
+    "ts-node-dev": "^1.1.8",
+    "typescript": "^4.6.3"
+  }
+}
