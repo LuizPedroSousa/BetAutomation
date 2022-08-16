@@ -13,6 +13,12 @@ export interface BetColor {
   quantity: number;
 }
 
+interface BetQuantity {
+  red: number;
+  black: number;
+  white: number;
+}
+
 interface BetProps {
   colors: BetColor[];
   round: Round;
@@ -21,7 +27,7 @@ interface BetProps {
 }
 
 interface CreateBetDTO {
-  quantity: number;
+  quantity: BetQuantity;
   blacks: Round[];
   reds: Round[];
   bets: Bet[];
@@ -29,7 +35,7 @@ interface CreateBetDTO {
 }
 
 interface BetInColorsDTO {
-  quantity: number;
+  quantity: BetQuantity;
   blacks: Round[];
   bets: Bet[];
 }
@@ -79,31 +85,30 @@ export class Bet extends Entity<BetProps> {
   }
 
   static betInColors({ blacks, bets, quantity }: BetInColorsDTO): { betQuantity: number; betInColors: BetColor[] } {
-    let betAmount: number = quantity;
-    let betInWhite: number = 0;
+    const betAmount = quantity;
 
     const colors = bets.map(bet => bet.colors).flatMap(color => color);
 
     for (const color of colors) {
-      if (color.color !== 'white') {
-        betAmount += color.quantity;
-      } else {
-        betInWhite += color.quantity;
-      }
+      betAmount[color.color] += color.quantity;
     }
+
+    const betInColor = Bet.isBlack(blacks) ? 'red' : 'black';
+
+    const whiteBet = betAmount.white + betAmount[betInColor];
 
     return {
       betInColors: [
         {
-          color: Bet.isBlack(blacks) ? 'red' : 'black',
-          quantity: betAmount,
+          color: betInColor,
+          quantity: betAmount[betInColor],
         },
         {
           color: 'white',
-          quantity: betInWhite + betAmount / 14,
+          quantity: whiteBet % 14 === 0 ? whiteBet / 14 : whiteBet,
         },
       ],
-      betQuantity: betAmount + (betInWhite + betAmount / 14),
+      betQuantity: betAmount.white + (whiteBet % 14 === 0 ? whiteBet / 14 : whiteBet),
     };
   }
 

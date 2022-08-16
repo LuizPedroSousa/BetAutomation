@@ -10,8 +10,14 @@ interface BetIn {
   end: string;
 }
 
+interface AmountColors {
+  red: number;
+  black: number;
+  white: number;
+}
+
 interface Double {
-  amount: number;
+  amount: AmountColors;
   limit?: Limit;
   bet_in?: BetIn;
 }
@@ -23,7 +29,11 @@ interface BetConfig {
 export const betConfig = () => {
   const credentials: BetConfig = {
     double: {
-      amount: Number(process.env.DOUBLE_BET_AMOUNT),
+      amount: {
+        red: Number(process.env.DOUBLE_BET_RED),
+        black: Number(process.env.DOUBLE_BET_BLACK),
+        white: Number(process.env.DOUBLE_BET_WHITE),
+      },
       limit: {
         lose: Number(process.env.DOUBLE_BET_STOP_LOSE),
         win: Number(process.env.DOUBLE_BET_STOP_WIN),

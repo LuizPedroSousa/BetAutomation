@@ -1,5 +1,4 @@
 import { MissingEnvsException } from '@shared/infra/exceptions/MissingEnvsException';
-import { MissingParamsException } from '@shared/infra/exceptions/MissingParamsException';
 
 interface AuthCredentials {
   email: string;
