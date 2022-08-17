@@ -121,14 +121,14 @@ export class Bet extends Entity<BetProps> {
   }
 
   static isBlack(blacks: Round[]): boolean {
-    if (blacks.length === 4) {
+    if (blacks.length === 3) {
       return true;
     }
     return false;
   }
 
   static isRed(reds: Round[]): boolean {
-    if (reds.length === 4) {
+    if (reds.length === 3) {
       return true;
     }
     return false;

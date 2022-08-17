@@ -28,6 +28,9 @@ interface DoubleProps {
   user: User;
   bet_in?: BetIn;
   limit?: Limit;
+  isMartinGale: boolean;
+  betsDuringMartinGale: number;
+  martinGales: number;
 }
 
 interface CreateDoubleDTO {
@@ -45,6 +48,30 @@ export class Double extends Entity<DoubleProps> {
     return this.props.rounds;
   }
 
+  get isMartinGale() {
+    return this.props.isMartinGale;
+  }
+
+  get martinGales() {
+    return this.props.martinGales;
+  }
+
+  set martinGales(value: number) {
+    this.props.martinGales = value;
+  }
+
+  get betsDuringMartinGale() {
+    return this.props.betsDuringMartinGale;
+  }
+
+  set betsDuringMartinGale(value: number) {
+    this.props.betsDuringMartinGale = value;
+  }
+
+  set isMartinGale(value: boolean) {
+    this.props.isMartinGale = value;
+  }
+
   private constructor(props: DoubleProps, id?: UniqueIdentifier) {
     super(props, id);
   }
@@ -54,19 +81,26 @@ export class Double extends Entity<DoubleProps> {
   }
 
   static create({ user }: CreateDoubleDTO) {
-    return new Double({ user, rounds: [], bets: [] });
+    return new Double({ user, rounds: [], bets: [], isMartinGale: false, betsDuringMartinGale: 0, martinGales: 0 });
   }
 
   addRound(round: Round) {
     this.props.rounds.push(round);
+    console.log('Rodadas', JSON.stringify(this.rounds, null, 4));
+    console.log('Apostas', JSON.stringify(this.bets, null, 4));
+    console.log('Martingales', JSON.stringify(this.martinGales, null, 4));
   }
 
   addBet(bet: Bet) {
+    if (this.isMartinGale) {
+      this.betsDuringMartinGale += 1;
+    }
+
     this.props.bets.push(bet);
   }
 
   isEndGame() {
-    if (this.bets.length === 2) {
+    if (this.martinGales === 2) {
       return true;
     }
 
@@ -79,11 +113,7 @@ export class Double extends Entity<DoubleProps> {
       }
     }
 
-    if (this.checkLimit('lose', this.props?.limit?.lose)) {
-      return true;
-    }
-
-    if (this.checkLimit('win', this.props?.limit?.win)) {
+    if (this.checkLimit('lose', this.props?.limit?.lose) || this.checkLimit('win', this.props?.limit?.win)) {
       return true;
     }
 
@@ -113,8 +143,18 @@ export class Double extends Entity<DoubleProps> {
     return this.rounds[this.rounds.length - 1];
   }
 
-  resetDouble() {
+  get last_bet() {
+    return this.bets[this.bets.length - 1];
+  }
+
+  resetDouble(reason: string) {
     this.props.rounds = [] as Round[];
     this.props.bets = [] as Bet[];
+    this.props.isMartinGale = false;
+    this.props.betsDuringMartinGale = 0;
+    console.log(`Double foi resetado - ${reason}`);
+    console.log('Rodadas', JSON.stringify(this.rounds, null, 4));
+    console.log('Apostas', JSON.stringify(this.bets, null, 4));
+    console.log('Martingales', JSON.stringify(this.martinGales, null, 4));
   }
 }
