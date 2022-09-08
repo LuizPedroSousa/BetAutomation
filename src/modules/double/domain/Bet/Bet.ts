@@ -9,7 +9,7 @@ export type Color = 'red' | 'black' | 'white';
 export type BetStatus = 'pending' | 'lose' | 'win';
 
 export interface BetColor {
-  color: Color;
+  name: Color;
   quantity: number;
 }
 
@@ -20,10 +20,10 @@ interface BetQuantity {
 }
 
 interface BetProps {
-  colors: BetColor[];
+  color: BetColor;
   round: Round;
   status: BetStatus;
-  quantity: number;
+  total: number;
 }
 
 interface CreateBetDTO {
@@ -45,12 +45,12 @@ export class Bet extends Entity<BetProps> {
     return this.props.status;
   }
 
-  get quantity() {
-    return this.props.quantity;
+  get total() {
+    return this.props.total;
   }
 
-  get colors() {
-    return this.props.colors;
+  get color() {
+    return this.props.color;
   }
 
   private constructor(props: BetProps, id?: UniqueIdentifier) {
@@ -72,25 +72,25 @@ export class Bet extends Entity<BetProps> {
       return left(new CantBetInThisRoundException('Padrão inválido'));
     }
 
-    const { betQuantity, betInColors } = Bet.betInColors({ blacks, bets, quantity });
+    const { betTotal, betInColor } = Bet.betInColor({ blacks, bets, quantity });
 
     return right(
       new Bet({
-        colors: betInColors,
+        color: betInColor,
         round: current_round,
         status: 'pending',
-        quantity: betQuantity,
+        total: betTotal,
       }),
     );
   }
 
-  static betInColors({ blacks, bets, quantity }: BetInColorsDTO): { betQuantity: number; betInColors: BetColor[] } {
+  static betInColor({ blacks, bets, quantity }: BetInColorsDTO): { betTotal: number; betInColor: BetColor } {
     const betAmount = quantity;
 
-    const colors = bets.map(bet => bet.colors).flatMap(color => color);
+    const colors = bets.map(bet => bet.color).flatMap(color => color);
 
     for (const color of colors) {
-      betAmount[color.color] += color.quantity;
+      betAmount[color.name] += color.quantity;
     }
 
     const betInColor = Bet.isBlack(blacks) ? 'red' : 'black';
@@ -98,17 +98,11 @@ export class Bet extends Entity<BetProps> {
     const whiteBet = betAmount.white + betAmount[betInColor];
 
     return {
-      betInColors: [
-        {
-          color: betInColor,
-          quantity: betAmount[betInColor],
-        },
-        {
-          color: 'white',
-          quantity: whiteBet % 14 === 0 ? whiteBet / 14 : whiteBet,
-        },
-      ],
-      betQuantity: betAmount.white + (whiteBet % 14 === 0 ? whiteBet / 14 : whiteBet),
+      betInColor: {
+        name: betInColor,
+        quantity: betAmount[betInColor],
+      },
+      betTotal: betAmount.white + (whiteBet % 14 === 0 ? whiteBet / 14 : whiteBet),
     };
   }
 

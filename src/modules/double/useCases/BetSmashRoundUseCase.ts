@@ -29,16 +29,12 @@ export class BetSmashRoundUseCase implements UseCase<BetSmashRoundDTO, BetSmashR
       return left(betOrError.value);
     }
 
-    await Promise.all(betOrError.value.colors.map(color => this.betRound(color)));
+    await this.betRound(betOrError.value.color);
 
     return right(betOrError.value);
   }
 
-  async sleep(timeout: number) {
-    return new Promise<void>(resolve => setTimeout(resolve, timeout));
-  }
-
-  private async betRound({ quantity, color }: BetColor) {
+  private async betRound({ quantity, name }: BetColor) {
     await this.headlessProvider.fillInput({
       target: 'form.bet-control input.el-input__inner[placeholder="Quantia"]',
       is_iframe: true,
@@ -47,10 +43,10 @@ export class BetSmashRoundUseCase implements UseCase<BetSmashRoundDTO, BetSmashR
     });
 
     await this.headlessProvider.click({
-      target: `div.game-controls div.select > div.${color}[role="button"]`,
+      target: `div.game-controls div.select > div.${name}[role="button"]`,
       is_iframe: true,
       text: {
-        value: color === 'white' ? 'x14' : 'x2',
+        value: name === 'white' ? 'x14' : 'x2',
         element: 'div',
       },
     });
@@ -60,7 +56,5 @@ export class BetSmashRoundUseCase implements UseCase<BetSmashRoundDTO, BetSmashR
       is_iframe: true,
       max_selector_timeout: 2000,
     });
-
-    await this.sleep(2000);
   }
 }
