@@ -21,7 +21,7 @@ export class UpdateBetStatusUseCase implements UseCase<UpdateBetStatusDTO, Updat
 
     const [_, color] = colorClass.split(' ');
 
-    if (!bet.colors.find(betColor => betColor.color === color)) {
+    if (bet.color.name !== color) {
       return 'lose';
     }
 

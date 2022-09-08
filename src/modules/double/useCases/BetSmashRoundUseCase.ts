@@ -2,9 +2,15 @@ import { HeadlessProvider } from '@infra/providers/HeadlessProvider/ports/Headle
 import { UseCase } from '@shared/domain/UseCase';
 import { left, right } from '@shared/either';
 import { inject, injectable } from 'tsyringe';
-import { Bet, BetColor } from '../domain/Bet/Bet';
+import { Bet } from '../domain/Bet/Bet';
+import { BetsRepository } from '../repositories/BetsRepository';
 import { BetSmashRoundDTO } from './dtos/Smash/BetSmashRoundDTO';
 import { BetSmashRoundResponse } from './responses/Smash/BetSmashRoundResponse';
+
+interface BetColorDTO {
+  name: string;
+  amount: number;
+}
 
 @injectable()
 export class BetSmashRoundUseCase implements UseCase<BetSmashRoundDTO, BetSmashRoundResponse> {
@@ -13,15 +19,15 @@ export class BetSmashRoundUseCase implements UseCase<BetSmashRoundDTO, BetSmashR
     private headlessProvider: HeadlessProvider,
   ) {}
 
-  async execute({ quantity, double }: BetSmashRoundDTO): BetSmashRoundResponse {
-    const blacks = double.rounds.filter(round => round.color === 'black');
-    const reds = double.rounds.filter(round => round.color === 'red');
+  async execute({ amount, double }: BetSmashRoundDTO): BetSmashRoundResponse {
+    const blacks = double.rounds.filter(round => round.color.name === 'black');
+    const reds = double.rounds.filter(round => round.color.name === 'red');
 
     const betOrError = Bet.create({
       bets: double.bets,
       blacks,
       reds,
-      quantity,
+      amount,
       current_round: double.last_round,
     });
 
@@ -29,16 +35,21 @@ export class BetSmashRoundUseCase implements UseCase<BetSmashRoundDTO, BetSmashR
       return left(betOrError.value);
     }
 
-    await this.betRound(betOrError.value.color);
+    const bet = betOrError.value;
 
-    return right(betOrError.value);
+    await this.betRound({
+      amount: bet.amount,
+      name: bet.color.name,
+    });
+
+    return right(bet);
   }
 
-  private async betRound({ quantity, name }: BetColor) {
+  private async betRound({ amount, name }: BetColorDTO) {
     await this.headlessProvider.fillInput({
       target: 'form.bet-control input.el-input__inner[placeholder="Quantia"]',
       is_iframe: true,
-      text: String(quantity),
+      text: String(amount),
       max_selector_timeout: 2000,
     });
 

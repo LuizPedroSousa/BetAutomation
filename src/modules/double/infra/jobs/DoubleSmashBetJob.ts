@@ -16,19 +16,19 @@ import { UpdateBetStatusUseCase } from '@modules/double/useCases/UpdateBetStatus
 import { ValidateSmashRoundUseCase } from '@modules/double/useCases/ValidateSmashRoundCrashUseCase';
 import { BaseJob } from '@shared/domain/BaseJob';
 import { UseCase } from '@shared/domain/UseCase';
-import { inject, injectable } from 'tsyringe';
+import { delay, inject, injectable } from 'tsyringe';
 
 @injectable()
 export class DoubleSmashBetJob extends BaseJob {
   private double: Double;
 
   constructor(
-    @inject(CreateSmashRoundUseCase)
+    @inject(delay(() => CreateSmashRoundUseCase))
     private createRoundUseCase: UseCase<CreateSmashRoundDTO, CreateSmashRoundResponse>,
 
     @inject(GetRoundUseCase)
     private getRoundUseCase: UseCase<GetSmashRoundDTO, GetSmashRoundResponse>,
-    @inject(BetSmashRoundUseCase)
+    @inject(delay(() => BetSmashRoundUseCase))
     private betRoundUseCase: UseCase<BetSmashRoundDTO, BetSmashRoundResponse>,
 
     @inject(UpdateBetStatusUseCase)
@@ -103,7 +103,7 @@ export class DoubleSmashBetJob extends BaseJob {
     }
 
     const roundIdOrError = await this.getRoundUseCase.execute({
-      older_round_id: this.double.last_round?.id?.getValue(),
+      older_round_id: this.double.last_round?.seed,
     });
 
     if (roundIdOrError.isLeft()) {
@@ -123,7 +123,7 @@ export class DoubleSmashBetJob extends BaseJob {
     this.double.addRound(roundOrError.value);
 
     const betOrError = await this.betRoundUseCase.execute({
-      quantity: amount,
+      amount,
       double: this.double,
     });
 
@@ -138,7 +138,7 @@ export class DoubleSmashBetJob extends BaseJob {
 
   private async updateBet(bet: Bet): Promise<void> {
     const roundIdOrError = await this.getRoundUseCase.execute({
-      older_round_id: this.double.last_round?.id?.getValue(),
+      older_round_id: this.double.last_round?.seed,
     });
 
     if (roundIdOrError.isLeft()) {
