@@ -15,11 +15,9 @@ interface CreateRoundDTO {
   color: string;
   number: number;
   rounds: Round[];
-  isMartinGale: boolean;
 }
 
 interface ValidateRoundDTO {
-  isMartinGale: boolean;
   rounds: Round[];
   color: string;
 }
@@ -37,12 +35,11 @@ export class Round extends Entity<RoundProps> {
     return new Round(props, new UniqueIdentifier(id));
   }
 
-  static create({ id, color, rounds, number, isMartinGale }: CreateRoundDTO): Either<InvalidRoundException, Round> {
+  static create({ id, color, rounds, number }: CreateRoundDTO): Either<InvalidRoundException, Round> {
     if (
       !Round.isValid({
         rounds,
         color,
-        isMartinGale,
       })
     ) {
       return left(new InvalidRoundException('quebra de cores'));
@@ -59,11 +56,7 @@ export class Round extends Entity<RoundProps> {
     );
   }
 
-  static isValid({ rounds, isMartinGale, color }: ValidateRoundDTO) {
-    if (isMartinGale) {
-      return true;
-    }
-
+  static isValid({ rounds, color }: ValidateRoundDTO) {
     let result = true;
 
     if (rounds.length > 0) {

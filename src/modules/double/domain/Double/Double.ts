@@ -28,9 +28,6 @@ interface DoubleProps {
   user: User;
   bet_in?: BetIn;
   limit?: Limit;
-  isMartinGale: boolean;
-  betsDuringMartinGale: number;
-  martinGales: number;
 }
 
 interface CreateDoubleDTO {
@@ -48,30 +45,6 @@ export class Double extends Entity<DoubleProps> {
     return this.props.rounds;
   }
 
-  get isMartinGale() {
-    return this.props.isMartinGale;
-  }
-
-  get martinGales() {
-    return this.props.martinGales;
-  }
-
-  set martinGales(value: number) {
-    this.props.martinGales = value;
-  }
-
-  get betsDuringMartinGale() {
-    return this.props.betsDuringMartinGale;
-  }
-
-  set betsDuringMartinGale(value: number) {
-    this.props.betsDuringMartinGale = value;
-  }
-
-  set isMartinGale(value: boolean) {
-    this.props.isMartinGale = value;
-  }
-
   private constructor(props: DoubleProps, id?: UniqueIdentifier) {
     super(props, id);
   }
@@ -81,29 +54,20 @@ export class Double extends Entity<DoubleProps> {
   }
 
   static create({ user }: CreateDoubleDTO) {
-    return new Double({ user, rounds: [], bets: [], isMartinGale: false, betsDuringMartinGale: 0, martinGales: 0 });
+    return new Double({ user, rounds: [], bets: [] });
   }
 
   addRound(round: Round) {
     this.props.rounds.push(round);
-    console.log('Rodadas', JSON.stringify(this.rounds, null, 4));
-    console.log('Apostas', JSON.stringify(this.bets, null, 4));
-    console.log('Martingales', JSON.stringify(this.martinGales, null, 4));
+    console.log('📑 Rodadas', JSON.stringify(this.rounds, null, 4));
+    console.log('📑 Apostas', JSON.stringify(this.bets, null, 4));
   }
 
   addBet(bet: Bet) {
-    if (this.isMartinGale) {
-      this.betsDuringMartinGale += 1;
-    }
-
     this.props.bets.push(bet);
   }
 
   isEndGame() {
-    if (this.martinGales === 2) {
-      return true;
-    }
-
     if (this.props?.bet_in?.start && this.props?.bet_in?.end) {
       const [hour, minutes] = this.props.bet_in.end.split(':');
 
@@ -130,7 +94,7 @@ export class Double extends Entity<DoubleProps> {
     const bets = this.bets.filter(bet => bet.status === status);
     let amount: number = 0;
 
-    bets.forEach(bet => (amount += bet.quantity));
+    bets.forEach(bet => (amount += bet.total));
 
     if (amount >= limit) {
       return true;
@@ -150,11 +114,8 @@ export class Double extends Entity<DoubleProps> {
   resetDouble(reason: string) {
     this.props.rounds = [] as Round[];
     this.props.bets = [] as Bet[];
-    this.props.isMartinGale = false;
-    this.props.betsDuringMartinGale = 0;
     console.log(`Double foi resetado - ${reason}`);
-    console.log('Rodadas', JSON.stringify(this.rounds, null, 4));
-    console.log('Apostas', JSON.stringify(this.bets, null, 4));
-    console.log('Martingales', JSON.stringify(this.martinGales, null, 4));
+    console.log('📑 Rodadas', JSON.stringify(this.rounds, null, 4));
+    console.log('📑 Apostas', JSON.stringify(this.bets, null, 4));
   }
 }

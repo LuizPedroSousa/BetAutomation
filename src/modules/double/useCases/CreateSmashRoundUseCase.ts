@@ -13,7 +13,7 @@ export class CreateSmashRoundUseCase implements UseCase<CreateSmashRoundDTO, Cre
     private headlessProvider: HeadlessProvider,
   ) {}
 
-  async execute({ round_id, rounds, isMartinGale }: CreateSmashRoundDTO): CreateSmashRoundResponse {
+  async execute({ round_id, rounds }: CreateSmashRoundDTO): CreateSmashRoundResponse {
     const colorNumber = await this.headlessProvider.getText({
       target: 'div.info-bg div.seamless-title div span.number',
       is_iframe: true,
@@ -30,7 +30,7 @@ export class CreateSmashRoundUseCase implements UseCase<CreateSmashRoundDTO, Cre
 
     const [_, color] = colorClass.split(' ');
 
-    const roundOrError = Round.create({ id: round_id, color, number: Number(colorNumber), rounds, isMartinGale });
+    const roundOrError = Round.create({ id: round_id, color, number: Number(colorNumber), rounds });
 
     if (roundOrError.isLeft()) {
       return left(roundOrError.value);
