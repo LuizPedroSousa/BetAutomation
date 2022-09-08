@@ -90,7 +90,6 @@ export class DoubleSmashBetJob extends BaseJob {
     } = this.req;
 
     if (this.double.isEndGame()) {
-      console.clear();
       console.log('JOGO ENCERRADO');
       this.double.resetDouble('o jogo foi encerrado.');
       return;
@@ -99,7 +98,6 @@ export class DoubleSmashBetJob extends BaseJob {
     const isRoundValid = await this.validateRoundUseCase.execute();
 
     if (!isRoundValid) {
-      console.clear();
       this.double.resetDouble('Jogo crashou tentando novamente..');
       await this.goToDoubleUseCase.execute();
     }
@@ -115,11 +113,9 @@ export class DoubleSmashBetJob extends BaseJob {
     const roundOrError = await this.createRoundUseCase.execute({
       round_id: roundIdOrError.value,
       rounds: this.double.rounds,
-      isMartinGale: this.double.isMartinGale,
     });
 
     if (roundOrError.isLeft()) {
-      console.clear();
       this.double.resetDouble(roundOrError.value.message);
       return this.loop();
     }
@@ -132,9 +128,7 @@ export class DoubleSmashBetJob extends BaseJob {
     });
 
     if (betOrError.isRight()) {
-      this.double.isMartinGale = true;
       this.double.addBet(betOrError.value);
-      console.clear();
       console.log('Aposta foi feita', JSON.stringify(this.double.last_bet, null, 4));
       await this.updateBet(betOrError.value);
     }
@@ -160,12 +154,6 @@ export class DoubleSmashBetJob extends BaseJob {
       id: bet.id.getValue(),
     });
 
-    console.clear();
     console.log(`Você ${status === 'win' ? 'ganhou' : 'perdeu'} a aposta!`, JSON.stringify(this.double.bets, null, 4));
-
-    if (this.double.betsDuringMartinGale === 3) {
-      this.double.martinGales += 1;
-      this.double.resetDouble('Martingale finalizado');
-    }
   }
 }
