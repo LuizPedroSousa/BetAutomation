@@ -94,7 +94,7 @@ export class Double extends Entity<DoubleProps> {
     const bets = this.bets.filter(bet => bet.status === status);
     let amount: number = 0;
 
-    bets.forEach(bet => (amount += bet.total));
+    bets.forEach(bet => (amount += bet.amount));
 
     if (amount >= limit) {
       return true;

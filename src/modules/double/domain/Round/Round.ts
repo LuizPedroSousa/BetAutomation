@@ -1,30 +1,33 @@
 import { Entity } from '@shared/domain/Entity';
 import { UniqueIdentifier } from '@shared/domain/UniqueIdentifier';
 import { Either, left, right } from '@shared/either';
+import { Color, CreateColorDTO } from '../Color/Color';
+import { InvalidColorException } from '../Color/exceptions/InvalidColorException';
 import { InvalidRoundException } from './exceptions/InvalidRoundException';
-
-export type Color = 'red' | 'black' | 'white';
 
 interface RoundProps {
   color: Color;
-  number: number;
+  seed: string;
 }
 
 interface CreateRoundDTO {
-  id: string;
-  color: string;
-  number: number;
+  color: CreateColorDTO;
+  seed: string;
   rounds: Round[];
 }
 
 interface ValidateRoundDTO {
   rounds: Round[];
-  color: string;
+  color: CreateColorDTO;
 }
 
 export class Round extends Entity<RoundProps> {
   get color() {
     return this.props.color;
+  }
+
+  get seed() {
+    return this.props.seed;
   }
 
   private constructor(props: RoundProps, id?: UniqueIdentifier) {
@@ -35,7 +38,7 @@ export class Round extends Entity<RoundProps> {
     return new Round(props, new UniqueIdentifier(id));
   }
 
-  static create({ id, color, rounds, number }: CreateRoundDTO): Either<InvalidRoundException, Round> {
+  static create({ seed, color, rounds }: CreateRoundDTO): Either<InvalidRoundException | InvalidColorException, Round> {
     if (
       !Round.isValid({
         rounds,
@@ -45,14 +48,17 @@ export class Round extends Entity<RoundProps> {
       return left(new InvalidRoundException('quebra de cores'));
     }
 
+    const colorOrError = Color.create(color);
+
+    if (colorOrError.isLeft()) {
+      return left(colorOrError.value);
+    }
+
     return right(
-      new Round(
-        {
-          color: color as Color,
-          number,
-        },
-        new UniqueIdentifier(id),
-      ),
+      new Round({
+        color: colorOrError.value,
+        seed,
+      }),
     );
   }
 
@@ -61,7 +67,7 @@ export class Round extends Entity<RoundProps> {
 
     if (rounds.length > 0) {
       for (let round of rounds) {
-        if (round.color !== color) {
+        if (round.color.name !== color.name) {
           result = false;
           break;
         }

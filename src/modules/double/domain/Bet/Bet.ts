@@ -1,33 +1,21 @@
 import { Entity } from '@shared/domain/Entity';
 import { UniqueIdentifier } from '@shared/domain/UniqueIdentifier';
 import { Either, left, right } from '@shared/either';
+import { Color } from '../Color/Color';
 import { Round } from '../Round/Round';
 import { CantBetInThisRoundException } from './exceptions/CantBetInThisRoundException';
 
-export type Color = 'red' | 'black' | 'white';
-
 export type BetStatus = 'pending' | 'lose' | 'win';
 
-export interface BetColor {
-  name: Color;
-  quantity: number;
-}
-
-interface BetQuantity {
-  red: number;
-  black: number;
-  white: number;
-}
-
 interface BetProps {
-  color: BetColor;
+  color: Color;
   round: Round;
   status: BetStatus;
-  total: number;
+  amount: number;
 }
 
 interface CreateBetDTO {
-  quantity: BetQuantity;
+  amount: number;
   blacks: Round[];
   reds: Round[];
   bets: Bet[];
@@ -35,8 +23,7 @@ interface CreateBetDTO {
 }
 
 interface BetInColorsDTO {
-  quantity: BetQuantity;
-  blacks: Round[];
+  amount: number;
   bets: Bet[];
 }
 
@@ -45,8 +32,8 @@ export class Bet extends Entity<BetProps> {
     return this.props.status;
   }
 
-  get total() {
-    return this.props.total;
+  get amount() {
+    return this.props.amount;
   }
 
   get color() {
@@ -61,49 +48,37 @@ export class Bet extends Entity<BetProps> {
     return new Bet(props, new UniqueIdentifier(id));
   }
 
-  static create({
-    quantity,
-    current_round,
-    bets,
-    blacks,
-    reds,
-  }: CreateBetDTO): Either<CantBetInThisRoundException, Bet> {
+  static create({ amount, current_round, bets, blacks, reds }: CreateBetDTO): Either<CantBetInThisRoundException, Bet> {
     if (!Bet.isValid(blacks, reds)) {
       return left(new CantBetInThisRoundException('Padrão inválido'));
     }
 
-    const { betTotal, betInColor } = Bet.betInColor({ blacks, bets, quantity });
+    const colorOrError = Color.create({
+      name: Bet.isBlack(blacks) ? 'red' : 'black',
+    });
+
+    if (colorOrError.isLeft()) {
+      return left(colorOrError.value);
+    }
 
     return right(
       new Bet({
-        color: betInColor,
+        color: colorOrError.value,
         round: current_round,
         status: 'pending',
-        total: betTotal,
+        amount: Bet.betAmount({ bets, amount }),
       }),
     );
   }
 
-  static betInColor({ blacks, bets, quantity }: BetInColorsDTO): { betTotal: number; betInColor: BetColor } {
-    const betAmount = quantity;
+  static betAmount({ bets, amount }: BetInColorsDTO): number {
+    let betAmount = amount;
 
-    const colors = bets.map(bet => bet.color).flatMap(color => color);
-
-    for (const color of colors) {
-      betAmount[color.name] += color.quantity;
+    for (const bet of bets) {
+      betAmount += bet.amount;
     }
 
-    const betInColor = Bet.isBlack(blacks) ? 'red' : 'black';
-
-    const whiteBet = betAmount.white + betAmount[betInColor];
-
-    return {
-      betInColor: {
-        name: betInColor,
-        quantity: betAmount[betInColor],
-      },
-      betTotal: betAmount.white + (whiteBet % 14 === 0 ? whiteBet / 14 : whiteBet),
-    };
+    return betAmount;
   }
 
   static isValid(blacks: Round[], reds: Round[]): boolean {
