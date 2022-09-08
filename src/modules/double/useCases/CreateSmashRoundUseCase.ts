@@ -3,6 +3,7 @@ import { UseCase } from '@shared/domain/UseCase';
 import { left, right } from '@shared/either';
 import { inject, injectable } from 'tsyringe';
 import { Round } from '../domain/Round/Round';
+import { RoundsRepository } from '../repositories/RoundsRepository';
 import { CreateSmashRoundDTO } from './dtos/Smash/CreateSmashRoundDTO';
 import { CreateSmashRoundResponse } from './responses/Smash/CreateSmashRoundResponse';
 
@@ -11,6 +12,8 @@ export class CreateSmashRoundUseCase implements UseCase<CreateSmashRoundDTO, Cre
   constructor(
     @inject('HeadlessProvider')
     private headlessProvider: HeadlessProvider,
+    @inject('RoundsRepository')
+    private roundsRepository: RoundsRepository,
   ) {}
 
   async execute({ round_id, rounds }: CreateSmashRoundDTO): CreateSmashRoundResponse {
@@ -30,12 +33,21 @@ export class CreateSmashRoundUseCase implements UseCase<CreateSmashRoundDTO, Cre
 
     const [_, color] = colorClass.split(' ');
 
-    const roundOrError = Round.create({ id: round_id, color, number: Number(colorNumber), rounds });
+    const roundOrError = Round.create({
+      seed: round_id,
+      color: {
+        name: color,
+        number: Number(colorNumber),
+      },
+      rounds,
+    });
 
     if (roundOrError.isLeft()) {
       return left(roundOrError.value);
     }
 
-    return right(roundOrError.value);
+    const createdRound = await this.roundsRepository.add(roundOrError.value);
+
+    return right(createdRound);
   }
 }
