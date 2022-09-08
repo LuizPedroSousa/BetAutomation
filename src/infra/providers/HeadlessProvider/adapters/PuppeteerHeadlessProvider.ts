@@ -157,22 +157,8 @@ export class PuppeteerHeadlessProvider implements HeadlessProvider {
           return false;
         }
       }
-
-      const input = await page.$(selector);
-
-      if (!input) {
-        return false;
-      }
-
-      const inputValue = await page.$eval(selector, el => el.value);
-
-      await input.click();
-
-      for (let i = 0; i < inputValue.length; i++) {
-        await input.keyboard.press('Backspace');
-      }
-
-      await input.type(text);
+      await page.click(selector, { clickCount: 3 });
+      await page.type(selector, text);
 
       return true;
     } catch (error: any) {
