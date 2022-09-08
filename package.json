@@ -12,8 +12,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "4.3.1",
     "babel-plugin-module-resolver": "^4.1.0",
     "dotenv": "^16.0.0",
+    "prisma": "^4.3.1",
     "puppeteer": "^15.5.0",
     "puppeteer-extra": "^3.3.4",
     "puppeteer-extra-plugin-stealth": "^2.11.0",

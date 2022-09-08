@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../double.db"
+}
+
+model Color {
+  id        String   @id @unique
+  name      String
+  number    Int?
+  round     Round[]
+  bet       Bet[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("colors")
+}
+
+model Round {
+  id        String   @id @unique
+  seed      String   @unique
+  color     Color    @relation(fields: [colorId], references: [id])
+  bet       Bet[]
+  colorId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("rounds")
+}
+
+model Bet {
+  id        String   @id @unique
+  amount    Int
+  status    String   @default("pending")
+  round     Round    @relation(fields: [roundId], references: [id])
+  color     Color    @relation(fields: [colorId], references: [id])
+  roundId   String
+  colorId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("bets")
+}
